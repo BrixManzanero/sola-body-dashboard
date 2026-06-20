@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sola Body — Revenue Command Center</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- ── HEADER ─────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-left">
+      <div class="header-logo">S</div>
+      <div>
+        <div class="header-brand">Sola Body</div>
+        <div class="header-sub">Revenue Command Center</div>
+      </div>
+    </div>
+    <div class="header-right" id="header-meta" style="display:none">
+      <span class="meta-badge" id="header-rows"></span>
+      <span class="meta-badge" id="header-range"></span>
+    </div>
+  </header>
+
+  <!-- ── UPLOAD SCREEN ──────────────────────────────── -->
+  <div class="upload-screen" id="upload-screen">
+    <div class="upload-card">
+      <div class="upload-icon">&#x1F4CA;</div>
+      <h2>Upload your BR Input Excel</h2>
+      <p class="upload-hint">Drop your daily revenue file here or click to browse</p>
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="file-input" accept=".xlsx,.xls" hidden />
+        <div class="drop-inner" id="drop-label">
+          <span class="drop-icon">&#x2B06;</span>
+          <span>Click or drag &amp; drop your Excel file</span>
+        </div>
+      </div>
+      <p class="upload-note">Required sheet: <code>Daily Revenue and Ads Expense!</code></p>
+      <div class="upload-error" id="upload-error" style="display:none"></div>
+      <div class="upload-loading" id="upload-loading" style="display:none">
+        <div class="spinner"></div>
+        <span>Reading and cleaning your data…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD ──────────────────────────────────── -->
+  <div class="dashboard" id="dashboard" style="display:none">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Viewing date</div>
+        <select class="date-select" id="date-select"></select>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Trend window</div>
+        <select class="date-select" id="trend-days">
+          <option value="7">Last 7 days</option>
+          <option value="14">Last 14 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="60">Last 60 days</option>
+          <option value="90">Last 90 days</option>
+        </select>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-label">Download Reports</div>
+
+      <button class="dl-btn" id="dl-daily">
+        <span class="dl-icon">&#x1F4C4;</span>
+        <div>
+          <div class="dl-title">Daily Report</div>
+          <div class="dl-sub">Snapshot · Platform · Ads</div>
+        </div>
+      </button>
+
+      <button class="dl-btn" id="dl-weekly">
+        <span class="dl-icon">&#x1F4C5;</span>
+        <div>
+          <div class="dl-title">Weekly Report</div>
+          <div class="dl-sub">WoW · Breakdown · Efficiency</div>
+        </div>
+      </button>
+
+      <button class="dl-btn" id="dl-monthly">
+        <span class="dl-icon">&#x1F4C6;</span>
+        <div>
+          <div class="dl-title">Monthly Report</div>
+          <div class="dl-sub">P&amp;L · MoM · Growth</div>
+        </div>
+      </button>
+
+      <button class="dl-btn" id="dl-audit">
+        <span class="dl-icon">&#x1F4CA;</span>
+        <div>
+          <div class="dl-title">Ads Audit</div>
+          <div class="dl-sub">ROAS ranking · Spend log</div>
+        </div>
+      </button>
+
+      <div class="sidebar-divider"></div>
+
+      <button class="sidebar-reset" id="reset-btn">Upload a different file</button>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+
+      <!-- Day header -->
+      <div class="day-header">
+        <div>
+          <div class="day-title" id="day-title">—</div>
+          <div class="campaign-tag" id="campaign-tag" style="display:none"></div>
+        </div>
+        <div class="day-loading" id="day-loading" style="display:none">
+          <div class="spinner-sm"></div> Loading…
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Revenue</div>
+          <div class="kpi-value" id="kpi-revenue">—</div>
+          <div class="kpi-delta" id="kpi-revenue-delta"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Revenue ex-VAT</div>
+          <div class="kpi-value" id="kpi-exvat">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Ad Spend</div>
+          <div class="kpi-value" id="kpi-ads">—</div>
+          <div class="kpi-delta" id="kpi-ads-delta"></div>
+        </div>
+        <div class="kpi-card kpi-highlight">
+          <div class="kpi-label">ROAS</div>
+          <div class="kpi-value" id="kpi-roas">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">MTD Revenue</div>
+          <div class="kpi-value" id="kpi-mtd">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">MTD ROAS</div>
+          <div class="kpi-value" id="kpi-mtd-roas">—</div>
+        </div>
+      </div>
+
+      <!-- Platform + Ads row -->
+      <div class="chart-row">
+        <div class="chart-card">
+          <div class="chart-title">Revenue by Platform</div>
+          <canvas id="chart-platform" height="180"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Ad Spend by Channel</div>
+          <canvas id="chart-ads" height="180"></canvas>
+        </div>
+        <div class="chart-card chart-card-sm">
+          <div class="chart-title">Platform Share</div>
+          <canvas id="chart-share" height="180"></canvas>
+        </div>
+      </div>
+
+      <!-- Revenue Trend -->
+      <div class="chart-card chart-card-full">
+        <div class="chart-title-row">
+          <div class="chart-title">Revenue Trend</div>
+          <div class="legend-row">
+            <span class="legend-dot" style="background:#1D3557"></span>Revenue
+            <span class="legend-dot" style="background:#E63946;margin-left:12px"></span>Ad Spend
+            <span class="legend-dot legend-star" style="margin-left:12px">&#9733;</span>Campaign
+          </div>
+        </div>
+        <canvas id="chart-trend" height="140"></canvas>
+      </div>
+
+      <!-- Platform Breakdown Trend -->
+      <div class="chart-card chart-card-full">
+        <div class="chart-title">Platform Revenue Over Time</div>
+        <canvas id="chart-platform-trend" height="140"></canvas>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/static/js/main.js"></script>
+</body>
+</html>
